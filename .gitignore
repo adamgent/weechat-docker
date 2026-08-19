@@ -1,3 +1,14 @@
 # never commit private keys; public keys dropped here are local config
 keys/*
 !keys/.gitkeep
+
+# belt and braces: key material / env files anywhere in the tree
+*.pem
+*.key
+*_key
+id_rsa*
+id_ecdsa*
+id_ed25519*
+*.ppk
+.env
+.env.*
