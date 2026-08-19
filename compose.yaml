@@ -1,0 +1,46 @@
+services:
+  weechat:
+    # Prebuilt image from this repo's GitHub Actions workflow:
+    #   image: ghcr.io/OWNER/weechat-ssh:latest
+    # Or build locally:
+    build:
+      context: .
+      args:
+        # pin the upstream weechat-container image here
+        WEECHAT_IMAGE: weechat/weechat:latest
+      # upstream weechat/weechat images are amd64-only
+      platforms:
+        - linux/amd64
+    image: weechat-ssh:latest
+    container_name: weechat
+    hostname: weechat
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      # host:container - ssh in with: ssh -p 2222 weechat@<host>
+      - "2222:22"
+    environment:
+      TZ: ${TZ:-UTC}
+      # Alternative to mounting ./keys: paste public keys here (newline separated)
+      # SSH_AUTHORIZED_KEYS: |
+      #   ssh-ed25519 AAAA... you@laptop
+      WEECHAT_TMUX_SESSION: weechat
+    volumes:
+      # public keys allowed to log in (read-only; *.pub or a file named authorized_keys)
+      - ./keys:/keys:ro
+      # weechat configuration + logs/data
+      - weechat-config:/home/weechat/.config/weechat
+      - weechat-data:/home/weechat/.local/share/weechat
+      # ssh host keys, so the fingerprint survives rebuilds
+      - ssh-host-keys:/etc/ssh/keys
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/entrypoint.sh", "healthcheck"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  weechat-config:
+  weechat-data:
+  ssh-host-keys:

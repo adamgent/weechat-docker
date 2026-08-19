@@ -1,0 +1,14 @@
+#!/bin/bash
+# Login shell for the weechat user: an interactive ssh login lands straight in
+# weechat, while "ssh weechat@host <command>" still works for scripting.
+set -euo pipefail
+
+# shellcheck disable=SC1091
+if [ -r /etc/weechat-container.env ]; then . /etc/weechat-container.env; fi
+
+if [ "${1:-}" = "-c" ]; then
+    shift
+    exec /bin/bash -c "$@"
+fi
+
+exec /usr/local/bin/weechat-attach

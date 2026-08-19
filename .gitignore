@@ -1,0 +1,3 @@
+# never commit private keys; public keys dropped here are local config
+keys/*
+!keys/.gitkeep

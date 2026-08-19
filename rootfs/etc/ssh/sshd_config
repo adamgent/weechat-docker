@@ -1,0 +1,39 @@
+# sshd for the weechat container: key-only, one user, straight into tmux.
+
+Port 22
+AddressFamily any
+ListenAddress 0.0.0.0
+ListenAddress ::
+
+# Host keys live on a volume so the fingerprint survives container rebuilds.
+HostKey /etc/ssh/keys/ssh_host_ed25519_key
+HostKey /etc/ssh/keys/ssh_host_rsa_key
+
+# Authentication: public keys only.
+PermitRootLogin no
+PasswordAuthentication no
+PermitEmptyPasswords no
+KbdInteractiveAuthentication no
+UsePAM no
+PubkeyAuthentication yes
+AuthorizedKeysFile /etc/ssh/authorized_keys.d/%u .ssh/authorized_keys
+MaxAuthTries 3
+LoginGraceTime 30
+AllowUsers weechat
+
+# No extras we don't need.
+X11Forwarding no
+AllowAgentForwarding no
+AllowTcpForwarding no
+GatewayPorts no
+PermitTunnel no
+PrintMotd no
+PrintLastLog no
+AcceptEnv LANG LC_* TERM COLORTERM
+
+# Keep long-lived IRC sessions alive through NAT / idle timeouts.
+ClientAliveInterval 60
+ClientAliveCountMax 5
+TCPKeepAlive yes
+
+LogLevel INFO

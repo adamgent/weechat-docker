@@ -1,0 +1,21 @@
+#!/bin/bash
+# Attach to (or create) the tmux session that holds weechat.
+set -euo pipefail
+
+# shellcheck disable=SC1091
+if [ -r /etc/weechat-container.env ]; then . /etc/weechat-container.env; fi
+SESSION="${WEECHAT_TMUX_SESSION:-weechat}"
+
+# tmux refuses to start on a TERM it cannot look up (e.g. "dumb", or a terminfo
+# entry the client has but the container does not); fall back to something sane.
+case "${TERM:-}" in
+    "" | dumb | unknown) TERM=xterm-256color ;;
+esac
+if ! infocmp "$TERM" >/dev/null 2>&1; then
+    TERM=xterm-256color
+fi
+export TERM
+
+# -A: attach if the session exists, create it running weechat if it doesn't.
+# -D: detach any other client, so a stale connection can't hold the session.
+exec tmux -u new-session -A ${WEECHAT_TMUX_DETACH_OTHERS:+-D} -s "$SESSION" weechat

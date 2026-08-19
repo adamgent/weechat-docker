@@ -1,0 +1,5 @@
+.git
+.github
+keys
+*.md
+compose.yaml
