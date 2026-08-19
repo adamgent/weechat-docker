@@ -12,6 +12,9 @@ services:
       platforms:
         - linux/amd64
     image: weechat-ssh:latest
+    # upstream weechat/weechat is amd64-only; stating it silences the runtime
+    # platform-mismatch warning on arm64 hosts (runs under emulation)
+    platform: linux/amd64
     container_name: weechat
     hostname: weechat
     restart: unless-stopped
