@@ -60,8 +60,11 @@ if ! grep -qi 'weechat' <<<"$login_out"; then
     echo "interactive login did not show weechat:"; echo "$login_out"; exit 1
 fi
 
-if ! ssh "${SSH_OPTS[@]}" weechat@127.0.0.1 'tmux list-sessions' | grep -q '^weechat:'; then
-    echo "tmux session 'weechat' not found"; exit 1
+# capture output before grepping: under pipefail, `cmd | grep -q` fails when
+# grep exits on the first match and cmd dies of SIGPIPE writing the rest
+sessions="$(ssh "${SSH_OPTS[@]}" weechat@127.0.0.1 'tmux list-sessions')"
+if ! grep -q '^weechat:' <<<"$sessions"; then
+    echo "tmux session 'weechat' not found:"; echo "$sessions"; exit 1
 fi
 pane="$(ssh "${SSH_OPTS[@]}" weechat@127.0.0.1 'tmux capture-pane -p -t weechat')"
 if ! grep -qi 'weechat' <<<"$pane"; then
@@ -76,7 +79,8 @@ fi
 
 echo "==> graceful shutdown saves configuration"
 docker stop -t 30 "$NAME" >/dev/null
-docker logs "$NAME" 2>&1 | grep -q 'asking weechat to /quit' || {
-    echo "expected graceful weechat shutdown in logs"; docker logs "$NAME"; exit 1; }
+logs="$(docker logs "$NAME" 2>&1)"
+grep -q 'asking weechat to /quit' <<<"$logs" || {
+    echo "expected graceful weechat shutdown in logs"; echo "$logs"; exit 1; }
 
 echo "PASS"
